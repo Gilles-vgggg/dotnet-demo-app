@@ -10,42 +10,45 @@ node {
     }
 
     stage('Database') {
-        sh '''
-            echo "Starting MariaDB..."
-            docker compose up -d todoappdb
+    sh '''
+        echo "Starting MariaDB..."
+        docker compose up -d todoappdb
 
-            echo "Waiting for MariaDB..."
-            for i in $(seq 1 30); do
-                if docker exec todoappdb mariadb-admin ping \
-                    -h localhost -uroot -psekrit --silent; then
-                    echo "MariaDB is ready!"
-                    break
-                fi
+        echo "Waiting for MariaDB..."
+        for i in $(seq 1 30); do
+            if docker exec todoappdb mariadb-admin ping \
+                -h 127.0.0.1 -uroot -psekrit --silent; then
+                echo "MariaDB is ready!"
+                break
+            fi
 
-                sleep 2
-            done
+            sleep 2
+        done
 
-            echo "Creating test database..."
-            docker exec todoappdb mariadb -uroot -psekrit -e \
-              "CREATE DATABASE IF NOT EXISTS todo_test_db;
-               GRANT ALL PRIVILEGES ON todo_test_db.* TO 'todo_usr'@'%';
-               FLUSH PRIVILEGES;"
+        echo "Creating test database..."
+        docker exec todoappdb mariadb \
+          -h 127.0.0.1 -uroot -psekrit -e \
+          "CREATE DATABASE IF NOT EXISTS todo_test_db;
+           GRANT ALL PRIVILEGES ON todo_test_db.* TO 'todo_usr'@'%';
+           FLUSH PRIVILEGES;"
 
-            echo "Creating application database if necessary..."
-            docker exec todoappdb mariadb -uroot -psekrit -e \
-              "CREATE DATABASE IF NOT EXISTS todo_db;
-               GRANT ALL PRIVILEGES ON todo_db.* TO 'todo_usr'@'%';
-               FLUSH PRIVILEGES;"
+        echo "Creating application database if necessary..."
+        docker exec todoappdb mariadb \
+          -h 127.0.0.1 -uroot -psekrit -e \
+          "CREATE DATABASE IF NOT EXISTS todo_db;
+           GRANT ALL PRIVILEGES ON todo_db.* TO 'todo_usr'@'%';
+           FLUSH PRIVILEGES;"
 
-            echo "Loading schemas..."
-            cat TodoApp/schema.sql | \
-              docker exec -i todoappdb mariadb \
-              -utodo_usr -pletmeinplz todo_test_db
+        echo "Loading schemas..."
+        cat TodoApp/schema.sql | \
+          docker exec -i todoappdb mariadb \
+          -h 127.0.0.1 -utodo_usr -pletmeinplz todo_test_db
 
-            cat TodoApp/schema.sql | \
-              docker exec -i todoappdb mariadb \
-              -utodo_usr -pletmeinplz todo_db
-        '''
+        cat TodoApp/schema.sql | \
+          docker exec -i todoappdb mariadb \
+          -h 127.0.0.1 -utodo_usr -pletmeinplz todo_db
+    '''
+}
     }
 
     stage('Test') {
