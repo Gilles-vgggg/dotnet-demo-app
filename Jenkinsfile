@@ -47,8 +47,7 @@ node {
         cat TodoApp/schema.sql | \
           docker exec -i todoappdb mariadb \
           -h 127.0.0.1 -utodo_usr -pletmeinplz todo_db
-    '''
-}
+    	'''
     }
 
     stage('Test') {
