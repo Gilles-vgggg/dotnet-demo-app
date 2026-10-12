@@ -5,11 +5,13 @@ node {
 
     stage('Test') {
         sh '''
+            echo "Running .NET unit tests..."
+
             docker run --rm \
-              -v "$WORKSPACE":/src \
-              -w /src \
+              --volumes-from jenkins_server \
+              -w "$WORKSPACE" \
               mcr.microsoft.com/dotnet/sdk:10.0 \
-              dotnet test
+              dotnet test ./TodoApp.Tests/TodoApp.Tests.csproj
         '''
     }
 
